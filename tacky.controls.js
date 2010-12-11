@@ -8,56 +8,9 @@ var ESC = 27;
 
 var Controls = function(game){
   var controls = this;
-  var maxRow = game.board.nRows-1;
-  var maxCol = game.board.nCols-1;
-  this.setCursor = function(loc){
-    if(controls.cursor)
-      controls.cursor.dom.removeClass('cursor');
-    controls.cursor = game.getCell(loc);
-    controls.cursor.dom.addClass('cursor');
-  };
-
-  this.setSelected = function(loc){
-    if(controls.selected){
-      controls.selected.dom.removeClass('selected');
-      controls.selected = null;
-    }
-    if(loc){
-      controls.selected = game.getCell(loc);
-      controls.selected.dom.addClass('selected');
-    }
-    controls.notify('selectionChanged');
-  };
-
-  this.moveCursor = function(dir){
-    var row = controls.cursor.row;
-    var col = controls.cursor.col;
-    if (dir == UP) row--;
-    else if (dir == DOWN) row++;
-    else if (dir == LEFT) col--;
-    else if (dir == RIGHT) col++;
-    if(row<0) row = maxRow;
-    if(row>maxRow) row = 0;
-    if(col<0) col = maxCol;
-    if(col>maxCol) col = 0;
-    controls.setCursor({row:row,col:col});
-  };
-
-  this.toggleSelected = function(){
-    controls.setSelected(
-      controls.selected ? null : controls.cursor);
-  };
-
-  this.actions = {};
-  this.registerAction = function(name, fn){
-    if(!controls.actions[name])controls.actions[name]=[];
-    controls.actions[name].push(fn);
-  };
-  this.notify = function(action){
-    var fn,i;
-    console.log('Firing ',action);
-    for(i=0;fn=controls.actions[action];i++)fn();
-  };
+  this.getCell = function(x){return game.getCell(x);};
+  this.maxRow = game.board.nRows-1;
+  this.maxCol = game.board.nCols-1;
 
   this.keyPressHandler = function(event){
     var cancel = true;
@@ -74,16 +27,73 @@ var Controls = function(game){
     }
     else if(key == ESC){
       controls.setSelected(null);
-      controls.notify('canceled');
+      controls.notify('cancel');
     }
     else {
-      console.log('letting through:',event, key);
+      //console.log('letting through:',event, key);
       cancel = false;
     }
     if(cancel) event.preventDefault();
   };
-
   this.setCursor({row:0,col:0});
   $(window).keypress(controls.keyPressHandler);
 
+};
+Controls.prototype = {actions:{},selected:null,cursor:null};
+
+Controls.prototype.setCursor = function(loc){
+  if(this.cursor)
+    this.cursor.dom.removeClass('cursor');
+  this.cursor = this.getCell(loc);
+  this.cursor.dom.addClass('cursor');
+};
+Controls.prototype.moveCursor = function(dir){
+  var row = this.cursor.row;
+  var col = this.cursor.col;
+  if (dir == UP) row--;
+  else if (dir == DOWN) row++;
+  else if (dir == LEFT) col--;
+  else if (dir == RIGHT) col++;
+  if(row<0) row = this.maxRow;
+  if(row>this.maxRow) row = 0;
+  if(col<0) col = this.maxCol;
+  if(col>this.maxCol) col = 0;
+  this.setCursor({row:row,col:col});
+};
+
+Controls.prototype.setSelected = function(loc){
+  if(this.selected){
+    this.selected.dom.removeClass('selected');
+    this.selected = null;
+  }
+  if(loc){
+    this.selected = game.getCell(loc);
+    this.selected.dom.addClass('selected');
+  }
+  controls.notify('selectionChanged');
+};
+
+Controls.prototype.toggleSelected = function(){
+  this.setSelected(
+    this.selected ? null : this.cursor);
+};
+
+Controls.prototype.confirm = function(){
+  if(this.selected.unit){
+    this.selected.unit.move(c.cursor);
+    this.setSelected(null);
+  }
+};
+
+Controls.prototype.register = function(name, fn){
+  if(!this.actions[name])this.actions[name]=[];
+    this.actions[name].push(fn);
+};
+
+Controls.prototype.notify = function(action){
+  var fn,i;
+  if(this.actions[action]){
+    console.log('Firing ',action, this.actions[action]);
+    for(i=0;fn=this.actions[action][i];i++)fn();
+  }
 };

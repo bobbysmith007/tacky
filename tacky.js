@@ -3,6 +3,12 @@ var UP = 38;
 var RIGHT = 39;
 var DOWN = 40;
 
+var isA = function(o,type){
+  if(o.constructor == type)return true;
+  if(o.constructor == object) return false;
+  return isA.call(this.constructor);
+};
+
 var randomInRange = function(max,min){
   if(!min)min=0;
   return Math.floor(Math.random()*(max+min))-min;
@@ -15,6 +21,7 @@ var Cell = function(row, col, type, elevation){
   this.dom = this.dom.clone();
   this.dom.addClass(type);
   this.stuff = null;
+  this.unit = null;
 };
 Cell.prototype = {
   dom:$('<div class="cell"></div>')
@@ -65,6 +72,7 @@ Unit.prototype = {
   dom: $('<div class="unit"></div>'),
   nextTurn: 0,
   speed: 10,
+  move: 3,
   facing: UP,
   control: "HUMAN"
 };
@@ -75,6 +83,19 @@ Unit.prototype.setFacing = function (f){
    f==UP?"fup":
    f==DOWN?"fdown":
    f==RIGHT?"fright":"fleft");
+};
+Unit.prototype.move = function(o){
+  var cell;
+  if(this.game){
+    this.game.getCell(this).unit = null;
+    this.dom.remove();
+  }
+  if( o )this.row = o.row, this.col = o.col;
+  if(this.game){
+    cell = this.game.getCell(this);
+    cell.dom.append(this.dom);
+    cell.unit = this;
+  }
 };
 
 var Game = function(){
@@ -88,14 +109,16 @@ Game.prototype.getCell = function(o){
   return this.board.rows[o.row].cells[o.col];
 };
 Game.prototype.addUnit = function(u){
+  u.game = this;
   this.units.push(u);
-  this.getCell(u).dom.append(u.dom);
+  u.move();
 };
+
 Game.prototype.findRandomEmptyLocation = function(){
   var cell;
   do cell = this.getCell({row:randomInRange(this.board.nRows),
 			 cell:randomInRange(this.board.nCols)});
-  while(cell.stuff);
+  while(cell.unit);
   return cell;
 };
 
