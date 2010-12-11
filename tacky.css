@@ -1,0 +1,20 @@
+.cell {height:32px; width:32px; float:left; border:1px solid #999;
+       position:relative;}
+.cell.grass {background-color:#9CA}
+.cell.woods {background-color:#3A4}
+.cell.road {background-color:#660}
+.cell.water {background-color:#66C}
+.cell.selected{ height:30px; width:30px; border:2px solid #66F;}
+.cell.cursor{ height:30px; width:30px; border:2px dashed #33C;}
+.cell.cursor.selected {
+    height:30px; width:30px; border:2px dashed #CCF;}
+.row {clear:both;}
+
+.unit { height:20px; width:20px; margin:4px;
+	border:2px solid black;
+	border-radius:10px;-moz-border-radius:10px; -webkit-border-radius:10px; }
+
+.unit.fup {border-top-width:6px; height:16px }
+.unit.fdown {border-bottom-width:6px; height:16px }
+.unit.fleft {border-left-width:6px; width:16px }
+.unit.fright {border-right-width:6px; width:16px  }
