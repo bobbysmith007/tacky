@@ -22,24 +22,20 @@ var Controls = function(game){
        key == RIGHT) controls.moveCursor(key);
     else if(key == SPACE || key == ENTER){
       if (controls.selected == controls.cursor) controls.setSelected(null);
-      else if (controls.selected) controls.notify('confirm');
+      else if (controls.selected) controls.confirm();
       else controls.setSelected(controls.cursor);
     }
-    else if(key == ESC){
-      controls.setSelected(null);
-      controls.notify('cancel');
-    }
-    else {
+    else if(key == ESC) controls.setSelected(null);
+    else cancel = false;
       //console.log('letting through:',event, key);
-      cancel = false;
-    }
+
     if(cancel) event.preventDefault();
   };
   this.setCursor({row:0,col:0});
   $(window).keypress(controls.keyPressHandler);
 
 };
-Controls.prototype = {actions:{},selected:null,cursor:null};
+Controls.prototype = {selected:null,cursor:null};
 
 Controls.prototype.setCursor = function(loc){
   if(this.cursor)
@@ -70,7 +66,6 @@ Controls.prototype.setSelected = function(loc){
     this.selected = game.getCell(loc);
     this.selected.dom.addClass('selected');
   }
-  controls.notify('selectionChanged');
 };
 
 Controls.prototype.toggleSelected = function(){
@@ -80,20 +75,7 @@ Controls.prototype.toggleSelected = function(){
 
 Controls.prototype.confirm = function(){
   if(this.selected.unit){
-    this.selected.unit.move(c.cursor);
+    this.selected.unit.move(this.cursor);
     this.setSelected(null);
-  }
-};
-
-Controls.prototype.register = function(name, fn){
-  if(!this.actions[name])this.actions[name]=[];
-    this.actions[name].push(fn);
-};
-
-Controls.prototype.notify = function(action){
-  var fn,i;
-  if(this.actions[action]){
-    console.log('Firing ',action, this.actions[action]);
-    for(i=0;fn=this.actions[action][i];i++)fn();
   }
 };
