@@ -6,43 +6,39 @@ var SPACE = 32;
 var ENTER = 13;
 var ESC = 27;
 
+window.CURRENT_KEY_PRESS = [];
+$(window).keypress( function(event){
+  var stack = window.CURRENT_KEY_PRESS, ctls;
+  if ((ctls=stack[stack.length-1])){
+    //console.log('Handling keys', stack, ctls, event);
+    ctls.keyPressHandler(event);
+  }
+});
+
 var Controls = function(game){
   var controls = this;
-  this.getCell = function(x){return game.getCell(x);};
-  this.maxRow = game.board.nRows-1;
-  this.maxCol = game.board.nCols-1;
-
-  this.keyPressHandler = function(event){
-    var cancel = true;
-    var key = event.keyCode;
-    if(key == 0) key = event.charCode;
-    if(key == UP ||
-       key == DOWN ||
-       key == LEFT ||
-       key == RIGHT) controls.moveCursor(key);
-    else if(key == SPACE || key == ENTER){
-      if (controls.selected == controls.cursor) controls.setSelected(null);
-      else if (controls.selected) controls.confirm();
-      else controls.setSelected(controls.cursor);
-    }
-    else if(key == ESC) controls.setSelected(null);
-    else cancel = false;
-      //console.log('letting through:',event, key);
-
-    if(cancel) event.preventDefault();
-  };
-  this.setCursor({row:0,col:0});
-  $(window).keypress(controls.keyPressHandler);
-
+  this.game = game;
+  if(this.game) this.setCursor({row:0,col:0});
 };
 Controls.prototype = {selected:null,cursor:null};
+Controls.prototype.bind=function(){
+  window.CURRENT_KEY_PRESS.push(this);
+};
+
+Controls.prototype.unbind=function(){
+  var stack = window.CURRENT_KEY_PRESS, fn;
+  window.CURRENT_KEY_PRESS.push(this);
+  if((fn=stack[stack.length-1]) && fn == this.unbind)
+    stack.pop();
+};
 
 Controls.prototype.setCursor = function(loc){
   if(this.cursor)
     this.cursor.dom.removeClass('cursor');
-  this.cursor = this.getCell(loc);
+  this.cursor = this.game.getCell(loc);
   this.cursor.dom.addClass('cursor');
 };
+
 Controls.prototype.moveCursor = function(dir){
   var row = this.cursor.row;
   var col = this.cursor.col;
@@ -63,17 +59,39 @@ Controls.prototype.setSelected = function(loc){
     this.selected = null;
   }
   if(loc){
-    this.selected = game.getCell(loc);
+    this.selected = this.game.getCell(loc);
     this.selected.dom.addClass('selected');
   }
 };
 
-Controls.prototype.toggleSelected = function(){
-  this.setSelected(
-    this.selected ? null : this.cursor);
+var MoveControls = function(game){
+  this.game = game;
+  if(this.game) this.setCursor({row:0,col:0});
 };
 
-Controls.prototype.confirm = function(){
+MoveControls.prototype = new Controls();
+
+MoveControls.prototype.keyPressHandler = function(event){
+  var cancel = true;
+  var key = event.keyCode;
+  this.maxRow = this.game.board.nRows-1;
+  this.maxCol = this.game.board.nCols-1;
+
+  if(key == 0) key = event.charCode;
+  if(key == UP ||
+     key == DOWN ||
+     key == LEFT ||
+     key == RIGHT) this.moveCursor(key);
+  else if(key == SPACE || key == ENTER){
+    if (this.selected == this.cursor) this.setSelected(null);
+    else if (this.selected) this.confirm();
+    else this.setSelected(this.cursor);
+  }
+  else if(key == ESC) this.setSelected(null);
+  else cancel = false;
+  if(cancel) event.preventDefault();
+};
+MoveControls.prototype.confirm = function(){
   if(this.selected.unit){
     this.selected.unit.move(this.cursor);
     this.setSelected(null);

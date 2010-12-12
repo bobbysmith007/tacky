@@ -102,7 +102,8 @@ var Game = function(){
   this.board = new Board(10,10);
   this.units = [];
   this.initiativeQueue = [];
-  this.controls = new Controls(this);
+  this.controls = new MoveControls(this);
+  this.controls.bind();
 };
 Game.prototype = { };
 Game.prototype.getCell = function(o){
@@ -120,6 +121,10 @@ Game.prototype.findRandomEmptyLocation = function(){
 			 cell:randomInRange(this.board.nCols)});
   while(cell.unit);
   return cell;
+};
+
+Game.prototype.turn = function(){
+
 };
 
 var CreateGame = function (opts){
