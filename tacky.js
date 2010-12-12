@@ -141,11 +141,10 @@ Unit.prototype.move = function(o){
     cell = this.game.getCell(this);
     cell.dom.append(this.dom);
     cell.unit = this;
-  }
+  };
 };
 
 Unit.prototype.isAlly = function(other){
-  console.log(this.team, other.team, this.team == other.team);
   return (this.team && other.team && this.team == other.team);
 };
 

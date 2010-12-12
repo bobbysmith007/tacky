@@ -5,10 +5,17 @@
 .cell.road {background-color:#660}
 .cell.water {background-color:#66C}
 .cell.rock {background-color:#885;}
-.cell.selected{ height:30px; width:30px; border:2px solid #66F;}
+
+.cell.move.highlight{ background-color:#CCF; border-color:#00f; }
+.cell.move.highlight.selected{ height:30px; width:30px;
+			       border:2px dashed white;}
+
+
 .cell.cursor{ height:30px; width:30px; border:2px dashed #33C;}
+
+.cell.move.highlight.selected.cursor,
 .cell.cursor.selected {
-    height:30px; width:30px; border:2px dashed #CCF;}
+    height:30px; width:30px; border:2px dashed #6A6;}
 .row {clear:both;}
 
 .unit { height:20px; width:20px; margin:4px;
@@ -16,8 +23,6 @@
 	border-radius:10px;-moz-border-radius:10px; -webkit-border-radius:10px; }
 .unit.redteam {border-color:red;}
 .unit.blueteam {border-color:blue;}
-
-.cell.move.highlight{ background-color:#CCF; border-color:#00f; }
 
 .unit.fup {border-top-width:6px; height:16px }
 .unit.fdown {border-bottom-width:6px; height:16px }
