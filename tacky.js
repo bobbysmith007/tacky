@@ -13,18 +13,19 @@ var randomInRange = function(max,min){
   if(!min)min=0;
   return Math.floor(Math.random()*(max+min))-min;
 };
-var TerrainTypes = ["road", "grass", "woods", "water", "hills" ];
+var TerrainTypes = ["road", "grass", "woods", "water", "hills", "rock" ];
 
 var Cell = function(row, col, type, elevation){
   this.row=row, this.col = col;
   this.type = type;
   this.dom = this.dom.clone();
   this.dom.addClass(type);
-  this.stuff = null;
-  this.unit = null;
 };
 Cell.prototype = {
-  dom:$('<div class="cell"></div>')
+  dom:$('<div class="cell"></div>'),
+  stuff:null,
+  unit:null,
+  treadable:true
 };
 
 var Row = function (){
@@ -37,28 +38,71 @@ Row.prototype = {
   dom:$('<div class="row"></div>')
 };
 
-var Board = function(nCols, nRows){
+var Board = function(opts){
+  opts = opts||{};
   this.dom = this.dom.clone(),
-    this.nRows = nRows,
-    this.nCols = nCols,
+    this.nRows = opts.rows||10,
+    this.nCols = opts.cols||10,
     this.rows = [];
   var me = this;
   this.addRow = function(r){
     this.rows.push(r); this.dom.append(r.dom);
   };
   var i,j,row,cell;
-  for(i=0; i< nRows ;i++){
+  for(i=0; i< this.nRows ;i++){
     row = new Row();
-    for (j=0 ; j< nCols ;j++){
+    for (j=0 ; j< this.nCols ;j++){
       row.addCell(new Cell(i,j,'grass'));
     }
     this.addRow(row);
   }
 };
 Board.prototype = {
-  dom:$('<div class="board"></div>')
+  dom:$('<div class="board"></div>'),
+  highlights:{}
+};
+Board.prototype.getCell = function(o){
+  return this.rows[o.row].cells[o.col];
+};
+Board.prototype.doCells = function (fn, locations){
+  var i,loc;
+  for( i=0; loc = locations.indexes[i]; i++){
+    var cell = this.getCell(loc);
+    fn(cell);
+  }
+};
+Board.prototype.highlight = function (name, locations){
+  if(this.highlights[name])this.unhighlight(name);
+  this.highlights[name] = locations;
+  var i,loc;
+  for( i=0; loc = locations.indexes[i]; i++){
+    this.getCell(loc).dom.addClass(name+' highlight');
+  }
+};
+Board.prototype.unhighlight = function (name){
+  if(!this.highlights[name])return;
+  $('.highlight.'+name).removeClass(name).removeClass('highlight');
+  delete(this.highlights[name]);
 };
 
+var Index = function(row,col){
+  this.row = row, this.col=col;
+};
+Index.prototype = { };
+Index.prototype.toString = function(){ return this.row+','+this.col; };
+
+var IndexSet = function(idxs){
+  this.indexes = [];
+  this.hash={};
+};
+IndexSet.prototype = { };
+IndexSet.prototype.inSet = function(idx){ return this.hash[idx]; };
+IndexSet.prototype.add = function(idx){
+  if(!this.hash[idx]){
+    this.indexes.push(idx);
+    this.hash[idx]=idx;
+  }
+};
 
 var Unit = function(game, opts){
   opts=opts||{};
@@ -66,13 +110,15 @@ var Unit = function(game, opts){
   this.row=opts.row||0;
   this.col=opts.col||0;
   this.setFacing(opts.facing||RIGHT);
+  this.team = opts.team;
+  if(this.team) this.dom.addClass(this.team);
 };
 
 Unit.prototype = {
   dom: $('<div class="unit"></div>'),
   nextTurn: 0,
   speed: 10,
-  move: 3,
+  moveRate: 4,
   facing: UP,
   control: "HUMAN"
 };
@@ -98,8 +144,40 @@ Unit.prototype.move = function(o){
   }
 };
 
-var Game = function(){
-  this.board = new Board(10,10);
+Unit.prototype.isAlly = function(other){
+  console.log(this.team, other.team, this.team == other.team);
+  return (this.team && other.team && this.team == other.team);
+};
+
+Unit.prototype.moveToPoss = function(){
+  var locs = new IndexSet(), i,j,
+    maxR = this.game.board.nRows-1,
+    maxC = this.game.board.nCols-1,
+    thisidx = new Index(this.row, this.col),
+    me = this;
+
+  function rec(idx, move){
+    var newMove=move-1;
+    var cell = this.game.getCell(idx);
+    if(!cell.treadable) return; // cell is impassible
+    if(cell.unit && move==0) return; // occupied cant end there
+    if(cell.unit && !cell.unit.isAlly(me)) return; //cant move through enemies
+
+    if(!cell.unit) locs.add(idx);
+    if(move==0) return;
+    if(idx.col>0) rec(new Index(idx.row,idx.col-1),newMove);
+    if(idx.col<maxC) rec(new Index(idx.row,idx.col+1),newMove);
+    if(idx.row>0) rec(new Index(idx.row-1,idx.col),newMove);
+    if(idx.row<maxR) rec(new Index(idx.row+1,idx.col),newMove);
+  }
+  locs.add(thisidx);
+  rec(thisidx,this.moveRate);
+  return locs;
+};
+
+var Game = function(opts){
+  opts = opts||{};
+  this.board = new Board(opts);
   this.units = [];
   this.initiativeQueue = [];
   this.controls = new MoveControls(this);
@@ -107,7 +185,7 @@ var Game = function(){
 };
 Game.prototype = { };
 Game.prototype.getCell = function(o){
-  return this.board.rows[o.row].cells[o.col];
+  return this.board.getCell(o);
 };
 Game.prototype.addUnit = function(u){
   u.game = this;
@@ -130,8 +208,27 @@ Game.prototype.turn = function(){
 var CreateGame = function (opts){
   var game = window.game = new Game(opts);
   $(document.body).append(game.board.dom);
-  game.addUnit(new Unit(game));
-  game.controls.setSelected({row:1,col:2});
+  game.addUnit(new Unit(game,{row:0,col:0,team:"redteam"}));
+  game.addUnit(new Unit(game,{row:1,col:0,team:"redteam"}));
+  game.addUnit(new Unit(game,{row:6,col:5,team:"blueteam"}));
+  game.controls.setCursor({row:0,col:0});
+
+  var idxs = new IndexSet();
+  for(var i=3; i<=12; i++){
+    idxs.add(new Index(3,i));
+    idxs.add(new Index(8,i));
+  }
+  idxs.add(new Index(4,5));
+  idxs.add(new Index(5,5));
+  idxs.add(new Index(7,5));
+
+
+  game.board.doCells(function(c){
+    c.dom.removeClass('grass');
+    c.treadable=false;
+    c.dom.addClass('rock');
+  }, idxs);
 };
 
-$(window).ready(function(){CreateGame();});
+$(window).ready(function(){
+  CreateGame({rows:15,cols:20});});

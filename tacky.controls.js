@@ -53,17 +53,6 @@ Controls.prototype.moveCursor = function(dir){
   this.setCursor({row:row,col:col});
 };
 
-Controls.prototype.setSelected = function(loc){
-  if(this.selected){
-    this.selected.dom.removeClass('selected');
-    this.selected = null;
-  }
-  if(loc){
-    this.selected = this.game.getCell(loc);
-    this.selected.dom.addClass('selected');
-  }
-};
-
 var MoveControls = function(game){
   this.game = game;
   if(this.game) this.setCursor({row:0,col:0});
@@ -83,17 +72,46 @@ MoveControls.prototype.keyPressHandler = function(event){
      key == LEFT ||
      key == RIGHT) this.moveCursor(key);
   else if(key == SPACE || key == ENTER){
-    if (this.selected == this.cursor) this.setSelected(null);
+    if (this.selected == this.cursor) this.cancel();
     else if (this.selected) this.confirm();
     else this.setSelected(this.cursor);
   }
-  else if(key == ESC) this.setSelected(null);
+  else if(key == ESC)this.cancel();
   else cancel = false;
   if(cancel) event.preventDefault();
+  else return false; // we didnt handle the event
+  return true; // we handled the event
 };
+
+MoveControls.prototype.cancel=function(){
+  this.game.board.unhighlight('move');
+  this.setSelected(null);
+};
+
 MoveControls.prototype.confirm = function(){
-  if(this.selected.unit){
-    this.selected.unit.move(this.cursor);
+  var idx = new Index(this.cursor.row,this.cursor.col);
+  console.log(this.selected.unit,
+    this.moveRadius.inSet(idx), this.moveRadius);
+  if(this.selected.unit && this.moveRadius.inSet(idx)){
+    this.selected.unit.move(idx);
     this.setSelected(null);
+    this.game.board.unhighlight('move');
   }
 };
+
+MoveControls.prototype.setSelected = function(loc){
+  if(this.selected){
+    this.selected.dom.removeClass('selected');
+    this.selected = null;
+  }
+  if( loc ){
+    var cell = this.game.getCell(loc);
+    if(cell.unit){
+      this.selected = cell;
+      this.selected.dom.addClass('selected');
+      this.moveRadius = cell.unit.moveToPoss();
+      this.game.board.highlight('move', this.moveRadius );
+    }
+  }
+};
+
