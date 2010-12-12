@@ -105,12 +105,20 @@ IndexSet.prototype.add = function(idx){
 };
 
 var Game = function(opts){
+  this.init(opts);
+  //this.controls = new MoveControls(this);
+  //this.controls.bind();
+};
+Game.prototype = {
+  teams:[],units:[],initiativeIdx:0,initiativeQueue:[],
+  boardHolder:$(document.body)
+};
+
+Game.prototype.init = function(opts){
   opts = opts||{};
   this.board = new Board(opts);
-  this.controls = new MoveControls(this);
-  this.controls.bind();
+  boardHolder.append(game.board.dom);
 };
-Game.prototype = { teams:[],units:[],initiativeIdx:0,initiativeQueue:[]};
 
 Game.prototype.victoryCondition = function(){
   return false;
@@ -144,9 +152,10 @@ Game.prototype.scheduleNextTurn = function(){
   var game = this;
   window.setTimeout(function(){game.turn();}, 100);
 };
+
 Game.prototype.turn = function(){
-  // if (this.failCondition()) game.announceFailure();
-  // else if(this.victoryCondition()) game.announceVictory();
+  if (this.failCondition()) game.announceFailure();
+  else if(this.victoryCondition()) game.announceVictory();
 
   var unit = this.initiativeQueue[this.initiativeIdx];
   if(unit.controller == HUMAN){
@@ -163,37 +172,11 @@ Game.prototype.turn = function(){
 
 };
 
-var CreateRunAwayGame = function (opts){
-  opts=opts || {rows:15,cols:15};
-  var game = window.game = new Game(opts);
-  $(document.body).append(game.board.dom);
-  game.controls = new ForcedMoveControls(game);
-  game.controls.bind();
-  game.addUnit(new Unit(game,{row:0,col:0,team:"redteam", name:'Beggs'}));
-  game.addUnit(new Unit(game,{row:1,col:0,team:"redteam", name:'Widge'}));
-  game.addUnit(new Unit(game,{row:2,col:0,team:"redteam", name:'Londa'}));
-  game.addUnit(new FraidyCatUnit(game,{
-      row:6,col:5,team:"blueteam",name:'Drupy',
-      moveRate:6, controller:CPU}));
-  game.controls.setCursor({row:0,col:0});
-
-  var idxs = new IndexSet();
-  for(var i=3; i<=12; i++){
-    idxs.add(new Index(3,i));
-    idxs.add(new Index(10,i));
-  }
-  idxs.add(new Index(4,5));
-  idxs.add(new Index(5,5));
-  idxs.add(new Index(7,5));
-  idxs.add(new Index(8,5));
-  idxs.add(new Index(9,5));
-  game.board.doCells(function(c){
-    c.dom.removeClass('grass');
-    c.treadable=false;
-    c.dom.addClass('rock');
-  }, idxs);
-  game.scheduleNextTurn();
+Game.prototype.announceFailure = function(){
 };
 
-$(window).ready(function(){
-  CreateRunAwayGame();});
+Game.prototype.announceVictory = function(){
+};
+
+
+
