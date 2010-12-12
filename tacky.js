@@ -104,92 +104,32 @@ IndexSet.prototype.add = function(idx){
   }
 };
 
-var Unit = function(game, opts){
-  opts=opts||{};
-  this.dom = this.dom.clone();
-  this.row=opts.row||0;
-  this.col=opts.col||0;
-  this.setFacing(opts.facing||RIGHT);
-  this.team = opts.team;
-  if(this.team) this.dom.addClass(this.team);
-};
-
-Unit.prototype = {
-  dom: $('<div class="unit"></div>'),
-  nextTurn: 0,
-  speed: 10,
-  moveRate: 4,
-  facing: UP,
-  control: "HUMAN"
-};
-
-Unit.prototype.setFacing = function (f){
-  this.facing = f;
-  this.dom.removeClass('fup fdown fleft fright').addClass(
-   f==UP?"fup":
-   f==DOWN?"fdown":
-   f==RIGHT?"fright":"fleft");
-};
-Unit.prototype.move = function(o){
-  var cell;
-  if(this.game){
-    this.game.getCell(this).unit = null;
-    this.dom.remove();
-  }
-  if( o )this.row = o.row, this.col = o.col;
-  if(this.game){
-    cell = this.game.getCell(this);
-    cell.dom.append(this.dom);
-    cell.unit = this;
-  };
-};
-
-Unit.prototype.isAlly = function(other){
-  return (this.team && other.team && this.team == other.team);
-};
-
-Unit.prototype.moveToPoss = function(){
-  var locs = new IndexSet(), i,j,
-    maxR = this.game.board.nRows-1,
-    maxC = this.game.board.nCols-1,
-    thisidx = new Index(this.row, this.col),
-    me = this;
-
-  function rec(idx, move){
-    var newMove=move-1;
-    var cell = this.game.getCell(idx);
-    if(!cell.treadable) return; // cell is impassible
-    if(cell.unit && move==0) return; // occupied cant end there
-    if(cell.unit && !cell.unit.isAlly(me)) return; //cant move through enemies
-
-    if(!cell.unit) locs.add(idx);
-    if(move==0) return;
-    if(idx.col>0) rec(new Index(idx.row,idx.col-1),newMove);
-    if(idx.col<maxC) rec(new Index(idx.row,idx.col+1),newMove);
-    if(idx.row>0) rec(new Index(idx.row-1,idx.col),newMove);
-    if(idx.row<maxR) rec(new Index(idx.row+1,idx.col),newMove);
-  }
-  locs.add(thisidx);
-  rec(thisidx,this.moveRate);
-  return locs;
-};
-
 var Game = function(opts){
   opts = opts||{};
   this.board = new Board(opts);
-  this.units = [];
-  this.initiativeQueue = [];
   this.controls = new MoveControls(this);
   this.controls.bind();
 };
-Game.prototype = { };
+Game.prototype = { teams:[],units:[],initiativeIdx:0,initiativeQueue:[]};
+
+Game.prototype.victoryCondition = function(){
+  return false;
+};
+Game.prototype.failCondition = function(){
+  return false;
+};
 Game.prototype.getCell = function(o){
   return this.board.getCell(o);
 };
 Game.prototype.addUnit = function(u){
   u.game = this;
   this.units.push(u);
+  if(u.team){
+    if(!this.teams[u.team]) this.teams[u.team] =[];
+    this.teams[u.team].push(u);
+  }
   u.move();
+  this.initiativeQueue.push(u);
 };
 
 Game.prototype.findRandomEmptyLocation = function(){
@@ -200,34 +140,60 @@ Game.prototype.findRandomEmptyLocation = function(){
   return cell;
 };
 
+Game.prototype.scheduleNextTurn = function(){
+  var game = this;
+  window.setTimeout(function(){game.turn();}, 100);
+};
 Game.prototype.turn = function(){
+  // if (this.failCondition()) game.announceFailure();
+  // else if(this.victoryCondition()) game.announceVictory();
+
+  var unit = this.initiativeQueue[this.initiativeIdx];
+  if(unit.controller == HUMAN){
+    this.controls.setCursor(unit);
+    this.controls.setSelected(unit);
+  }
+  else{
+    unit.aiTurn();
+    this.scheduleNextTurn();
+  }
+
+  if((this.initiativeIdx+=1)>=this.initiativeQueue.length)
+    this.initiativeIdx=0;
 
 };
 
-var CreateGame = function (opts){
+var CreateRunAwayGame = function (opts){
+  opts=opts || {rows:15,cols:15};
   var game = window.game = new Game(opts);
   $(document.body).append(game.board.dom);
-  game.addUnit(new Unit(game,{row:0,col:0,team:"redteam"}));
-  game.addUnit(new Unit(game,{row:1,col:0,team:"redteam"}));
-  game.addUnit(new Unit(game,{row:6,col:5,team:"blueteam"}));
+  game.controls = new ForcedMoveControls(game);
+  game.controls.bind();
+  game.addUnit(new Unit(game,{row:0,col:0,team:"redteam", name:'Beggs'}));
+  game.addUnit(new Unit(game,{row:1,col:0,team:"redteam", name:'Widge'}));
+  game.addUnit(new Unit(game,{row:2,col:0,team:"redteam", name:'Londa'}));
+  game.addUnit(new FraidyCatUnit(game,{
+      row:6,col:5,team:"blueteam",name:'Drupy',
+      moveRate:6, controller:CPU}));
   game.controls.setCursor({row:0,col:0});
 
   var idxs = new IndexSet();
   for(var i=3; i<=12; i++){
     idxs.add(new Index(3,i));
-    idxs.add(new Index(8,i));
+    idxs.add(new Index(10,i));
   }
   idxs.add(new Index(4,5));
   idxs.add(new Index(5,5));
   idxs.add(new Index(7,5));
-
-
+  idxs.add(new Index(8,5));
+  idxs.add(new Index(9,5));
   game.board.doCells(function(c){
     c.dom.removeClass('grass');
     c.treadable=false;
     c.dom.addClass('rock');
   }, idxs);
+  game.scheduleNextTurn();
 };
 
 $(window).ready(function(){
-  CreateGame({rows:15,cols:20});});
+  CreateRunAwayGame();});

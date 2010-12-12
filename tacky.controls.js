@@ -72,8 +72,8 @@ MoveControls.prototype.keyPressHandler = function(event){
      key == LEFT ||
      key == RIGHT) this.moveCursor(key);
   else if(key == SPACE || key == ENTER){
-    if (this.selected == this.cursor) this.cancel();
-    else if (this.selected) this.confirm();
+    //if (this.selected == this.cursor) this.cancel();
+    if (this.selected) this.confirm();
     else this.setSelected(this.cursor);
   }
   else if(key == ESC)this.cancel();
@@ -90,13 +90,17 @@ MoveControls.prototype.cancel=function(){
 
 MoveControls.prototype.confirm = function(){
   var idx = new Index(this.cursor.row,this.cursor.col);
-  console.log(this.selected.unit,
-    this.moveRadius.inSet(idx), this.moveRadius);
+  console.log(this.selected.unit, this.moveRadius.inSet(idx), this.moveRadius);
   if(this.selected.unit && this.moveRadius.inSet(idx)){
     this.selected.unit.move(idx);
     this.setSelected(null);
     this.game.board.unhighlight('move');
+    this.moveComplete();
   }
+};
+
+MoveControls.prototype.moveComplete = function(){
+
 };
 
 MoveControls.prototype.setSelected = function(loc){
@@ -109,9 +113,17 @@ MoveControls.prototype.setSelected = function(loc){
     if(cell.unit){
       this.selected = cell;
       this.selected.dom.addClass('selected');
-      this.moveRadius = cell.unit.moveToPoss();
+      this.moveRadius = cell.unit.movementRadius();
       this.game.board.highlight('move', this.moveRadius );
     }
   }
 };
 
+var ForcedMoveControls = function(game){
+  this.game = game;
+};
+ForcedMoveControls.prototype = new MoveControls();
+ForcedMoveControls.prototype.cancel=function(){ };
+ForcedMoveControls.prototype.moveComplete=function(){
+  this.game.scheduleNextTurn();
+};
