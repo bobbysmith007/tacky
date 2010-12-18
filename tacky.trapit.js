@@ -9,17 +9,15 @@ var TrapItGame = function (opts){
 
   this.IT = new FraidyCatUnit(this,{ row:6,col:5,
     team:"blueteam",name:'Drupy', moveRate:5, controller:CPU});
-  this.addUnit(IT);
+
+  this.addUnit(this.IT);
   this.generateTerrain();
   this.controls.setCursor({row:0,col:0});
   this.scheduleNextTurn();
 };
 
 TrapItGame.prototype = new Game();
-TrapItGame.prototype.init = function(opts){
-  this.prototype.init(opts);
 
-};
 TrapItGame.prototype.generateTerrain = function(){
   var idxs = new IndexSet();
   for(var i=3; i<=12; i++){
@@ -39,7 +37,7 @@ TrapItGame.prototype.generateTerrain = function(){
 };
 
 TrapItGame.prototype.victoryCondition = function(){
-  return IT.movementRadius.indexes.lenth == 0;
+  return this.IT.movementRadius().indexes.lenth == 0;
 };
 
 TrapItGame.prototype.failCondition = function(){

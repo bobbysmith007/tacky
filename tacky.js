@@ -111,13 +111,14 @@ var Game = function(opts){
 };
 Game.prototype = {
   teams:[],units:[],initiativeIdx:0,initiativeQueue:[],
-  boardHolder:$(document.body)
+  boardHolder:null
 };
 
 Game.prototype.init = function(opts){
   opts = opts||{};
+  this.boardHolder = $(document.body);
   this.board = new Board(opts);
-  boardHolder.append(game.board.dom);
+  this.boardHolder.append(this.board.dom);
 };
 
 Game.prototype.victoryCondition = function(){
