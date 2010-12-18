@@ -19,6 +19,7 @@ var Cell = function(row, col, type, elevation){
   this.row=row, this.col = col;
   this.type = type;
   this.dom = this.dom.clone();
+  this.dom[0].cell = this;
   this.dom.addClass(type);
 };
 Cell.prototype = {
@@ -155,8 +156,8 @@ Game.prototype.scheduleNextTurn = function(){
 };
 
 Game.prototype.turn = function(){
-  if (this.failCondition()) game.announceFailure();
-  else if(this.victoryCondition()) game.announceVictory();
+  if (this.failCondition()) return game.announceFailure();
+  else if(this.victoryCondition()) return game.announceVictory();
 
   var unit = this.initiativeQueue[this.initiativeIdx];
   if(unit.controller == HUMAN){
@@ -171,12 +172,15 @@ Game.prototype.turn = function(){
   if((this.initiativeIdx+=1)>=this.initiativeQueue.length)
     this.initiativeIdx=0;
 
+  return null;
 };
 
 Game.prototype.announceFailure = function(){
+  alert('You lose');
 };
 
 Game.prototype.announceVictory = function(){
+  alert('You win');
 };
 
 

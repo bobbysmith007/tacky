@@ -11,18 +11,11 @@ Unit.prototype = {
   controller: HUMAN
 };
 Unit.prototype.init=function(game, opts){
-  opts = opts||{};
+  $.extend(this,{facing:DOWN,row:0,col:0},opts);
   if(game)this.game = game;
   this.dom = this.dom.clone();
-  this.row=opts.row||0;
-  this.col=opts.col||0;
-  this.setFacing(opts.facing||DOWN);
-  this.team = opts.team;
-  this.name = opts.name;
-  if(opts.name) this.dom.attr('title', opts.name);
-  this.moveRate = opts.moveRate||this.moveRate;
-  this.initiative = opts.initiative || this.initiative;
-  this.controller = opts.controller || this.controller;
+  this.setFacing(this.facing);
+  if(this.name) this.dom.attr('title', opts.name);
   if(this.team) this.dom.addClass(this.team);
 };
 
@@ -104,7 +97,15 @@ Unit.prototype.movementRadius = function(){
 Unit.prototype.aiTurn = function(){ console.log('No AI'); };
 
 
+var PoliceUnit = function(game, opts){
+  opts = $.extend({moveRate:5, team:'blueteam'}, opts);
+  this.init(game, opts);
+};
+PoliceUnit.prototype = new Unit();
+
+
 var FraidyCatUnit = function(game, opts){
+  opts = $.extend({moveRate:5, team:'blueteam'}, opts);
   this.init(game, opts);
 };
 FraidyCatUnit.prototype = new Unit();

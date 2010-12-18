@@ -3,12 +3,12 @@ var TrapItGame = function (opts){
   this.init(opts);
   this.controls = new ForcedMoveControls(this);
   this.controls.bind();
-  this.addUnit(new Unit(this,{row:0,col:0,team:"redteam", name:'Beggs'}));
-  this.addUnit(new Unit(this,{row:1,col:0,team:"redteam", name:'Widge'}));
-  this.addUnit(new Unit(this,{row:2,col:0,team:"redteam", name:'Londa'}));
+  this.addUnit(new PoliceUnit(this,{row:0, col:0, name:'Beggs'}));
+  this.addUnit(new PoliceUnit(this,{row:0, col:14, name:'Widge'}));
+  this.addUnit(new PoliceUnit(this,{row:14, col:0, name:'Londa'}));
 
   this.IT = new FraidyCatUnit(this,{ row:6,col:5,
-    team:"blueteam",name:'Drupy', moveRate:5, controller:CPU});
+    team:"redteam",name:'Drupy', moveRate:4, controller:CPU});
 
   this.addUnit(this.IT);
   this.generateTerrain();
@@ -37,7 +37,8 @@ TrapItGame.prototype.generateTerrain = function(){
 };
 
 TrapItGame.prototype.victoryCondition = function(){
-  return this.IT.movementRadius().indexes.lenth == 0;
+  console.log('Victory?', this.IT.movementRadius().indexes.length==1);
+  return this.IT.movementRadius().indexes.length == 1;
 };
 
 TrapItGame.prototype.failCondition = function(){

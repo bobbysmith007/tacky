@@ -6,23 +6,45 @@ var SPACE = 32;
 var ENTER = 13;
 var ESC = 27;
 
-window.CURRENT_KEY_PRESS = [];
+window.CURRENT_CTLS = [];
 $(window).keypress( function(event){
-  var stack = window.CURRENT_KEY_PRESS, ctls;
+  var stack = window.CURRENT_CTLS, ctls;
   if ((ctls=stack[stack.length-1])){
     //console.log('Handling keys', stack, ctls, event);
-    ctls.keyPressHandler(event);
+    if(ctls.keyPressHandler)ctls.keyPressHandler(event);
   }
 });
 
 var Controls = function(game){
   var controls = this;
   this.game = game;
-  if(this.game) this.setCursor({row:0,col:0});
+  if(this.game){
+    this.setCursor({row:0,col:0});
+  }
+
 };
 Controls.prototype = {selected:null,cursor:null};
 Controls.prototype.bind=function(){
-  window.CURRENT_KEY_PRESS.push(this);
+  window.CURRENT_CTLS.push(this);
+  if(!this._mouseOverHandler){
+    this._mouseOverHandler = function(event){
+      var stack = window.CURRENT_CTLS, ctls;
+      if ((ctls=stack[stack.length-1])){
+	//console.log('Handling keys', stack, ctls, event);
+	if(ctls.mouseOverHandler) ctls.mouseOverHandler(event);
+      }
+    };
+    $('.cell', this.game.board.dom).mouseover(this._mouseOverHandler);
+  };
+  if(!this._clickHandler){
+    this._clickHandler = function(event){
+      var stack = window.CURRENT_CTLS, ctls;
+      if ((ctls=stack[stack.length-1])){
+	if(ctls.clickHandler) ctls.clickHandler(event);
+      }
+    };
+    $('.cell', this.game.board.dom).click( this._clickHandler );
+  }
 };
 
 Controls.prototype.unbind=function(){
@@ -37,6 +59,17 @@ Controls.prototype.setCursor = function(loc){
     this.cursor.dom.removeClass('cursor');
   this.cursor = this.game.getCell(loc);
   this.cursor.dom.addClass('cursor');
+};
+
+Controls.prototype.clickHandler = function(event){
+  console.log('Handling Click', event.target.cell);
+  if(event.target.cell)
+     this.setCursor(event.target.cell);
+  this.confirm();
+};
+Controls.prototype.mouseOverHandler = function(event){
+  // console.log(event, event.target, event.target.cell);
+  if(event.target.cell) this.setCursor(event.target.cell);
 };
 
 Controls.prototype.moveCursor = function(dir){
