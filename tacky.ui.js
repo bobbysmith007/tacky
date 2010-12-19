@@ -84,7 +84,6 @@ Board.prototype.addRow=function (r){
   this.rows.push(r);
   this.dom.append(r.dom);
   r.dom.width(r.cells.length*(r.cells[0].dom.width()+4));
-  console.log(r.cells.length,(r.cells[0].dom.width()+4));
 };
 
 
@@ -206,22 +205,12 @@ UI.prototype.scrollCursorIntoView = function(){
     this.board.dom.width() + this.board.dom.scrollLeft();
   var currentScrollLeft = this.board.dom.scrollLeft();
 
-  console.log(neededScrollTop, currentScrollTop,
-    neededScrollTop<currentScrollTop,
-    neededScrollBottom, currentScrollBottom,
-    neededScrollBottom>currentScrollBottom,
-    neededScrollLeft, currentScrollLeft,
-    neededScrollLeft<currentScrollLeft,
-    neededScrollRight, currentScrollRight,
-    neededScrollRight>currentScrollRight);
-
   if(neededScrollTop<currentScrollTop
      || neededScrollBottom>currentScrollBottom
      || neededScrollLeft<currentScrollLeft
      || neededScrollRight>currentScrollRight
     )
     this.cursor.dom[0].scrollIntoView();
-
 };
 
 UI.prototype.setCursor = function(cell){

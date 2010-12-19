@@ -38,10 +38,10 @@ TrapItGame.prototype.generateTerrain = function(){
     function(c){ c.setType('rock'); },
     idxs);
 
-var idxs = new IndexSet();
-  for(var i=0; i<15; i++){
+  var idxs = new IndexSet();
+  for(var i=0; i<45; i++){
     idxs.add(new Index(1,i));
-    idxs.add(new Index(i,1));
+    if(i<15) idxs.add(new Index(i,1));
   }
   this.UI.board.doCells(
     function(c){ c.setType('road'); },

@@ -14,6 +14,13 @@ $(window).keydown( function(event){
     if(ctls.keydownHandler)ctls.keydownHandler(event);
   }
 });
+$(window).mousemove(function(event){
+  var stack = window.CURRENT_CTLS, ctls;
+  if ((ctls=stack[stack.length-1])){
+    //console.log('Handling keys', stack, ctls, event);
+    ctls.mouseMoveTime = new Date();
+  }
+});
 
 
 var Controls = function(game){
@@ -32,8 +39,9 @@ Controls.prototype.bind=function(){
     this._mouseOverHandler = function(event){
       var stack = window.CURRENT_CTLS, ctls;
       if ((ctls=stack[stack.length-1])){
-	//console.log('Handling keys', stack, ctls, event);
-	if(ctls.mouseOverHandler) ctls.mouseOverHandler(event);
+	if(ctls.mouseMoveTime && (new Date()-ctls.mouseMoveTime < 75)
+	   && ctls.mouseOverHandler)
+	  ctls.mouseOverHandler(event);
       }
     };
     $('.cell', this.game.UI.board.dom).mouseover(this._mouseOverHandler);
