@@ -34,11 +34,9 @@ TrapItGame.prototype.generateTerrain = function(){
   idxs.add(new Index(7,5));
   idxs.add(new Index(8,5));
   idxs.add(new Index(9,5));
-  this.UI.board.doCells(function(c){
-    c.dom.removeClass('grass');
-    c.treadable=false;
-    c.dom.addClass('rock');
-  }, idxs);
+  this.UI.board.doCells(
+    function(c){ c.setType('rock'); },
+    idxs);
 };
 
 TrapItGame.prototype.victoryCondition = function(){

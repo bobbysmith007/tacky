@@ -1,10 +1,21 @@
-var TerrainTypes = ["road", "grass", "woods", "water", "hills", "rock" ];
+
+var TerrainTypes = {};
+var addTerrainType=function(name, moveRate){
+  TerrainTypes[name]={name:name, moveRate:moveRate};
+};
+addTerrainType("road", 2);
+addTerrainType("grass", 1);
+addTerrainType("woods", .5);
+addTerrainType("hills", .5);
+addTerrainType("swamp", .25);
+addTerrainType("water", 0);
+addTerrainType("rock", 0);
 
 var UIElement = function(game, opts){};
 UIElement.prototype = { typeName:'UIElement' };
 
 UIElement.prototype.init = function (){
-  console.log('UIElement init');
+  // console.log('UIElement init');
   if(this.dom) this.dom = this.dom.clone();
 };
 
@@ -14,12 +25,21 @@ var Cell = function(row, col, type, elevation){
   this.dom[0].cell = this;
   this.dom.addClass(type);
 };
+
 Cell.prototype = $.extend(new UIElement(), {
   dom:$('<div class="cell"></div>'),
   stuff:null,
-  unit:null,
-  treadable:true
+  unit:null
 }) ;
+
+Cell.prototype.setType=function(type){
+  this.dom.removeClass().addClass('cell').addClass(type);
+  this.type = type;
+};
+
+Cell.prototype.moveRate=function(){
+  return TerrainTypes[this.type].moveRate;
+};
 
 var Row = function (){
   this.init();
@@ -43,7 +63,7 @@ Board.prototype = $.extend(new UIElement(), {
 });
 Board.prototype.init = function(){
   UIElement.prototype.init.call(this);
-  console.log('board init');
+  // console.log('board init');
   var me = this;
   this.addRow = function(r){
     this.rows.push(r); this.dom.append(r.dom);
@@ -88,6 +108,32 @@ var StatusPanel = function(game){
 StatusPanel.prototype = $.extend(new UIElement(), {
   dom:$('<div class="status"></div>')
 });
+
+StatusPanel.prototype.update = function(o){
+  this.dom.empty();
+  if(o && o.buildStats) this.dom.append(o.buildStats());
+};
+
+var TerrainPanel = function(game){
+  this.game=game;
+  if(game) this.init(game);
+};
+TerrainPanel.prototype = $.extend(new UIElement(), {
+  dom:$('<div class="terrain"></div>')
+});
+
+TerrainPanel.prototype.update = function(o){
+  var c = this.game.UI.cursor;
+  this.dom.empty();
+  if(c)
+    this.dom.append(
+      $('<span class="name"></span>')
+	.addClass(c.type).html(c.type))
+      .append($('<span class="moveRate"></span>')
+	.html('Move: '+c.moveRate()));
+};
+
+
 var InitiativePanel = function(game){
   this.game=game;
   if(game) this.init(game);
@@ -103,11 +149,22 @@ UI.prototype = {};
 UI.prototype.init = function(game, uiHolder){
   this.game = game, this.uiHolder = uiHolder;
   this.board = new Board(game);
-  this.initiativePanel = new InitiativePanel(game);
-  this.statusPanel = new StatusPanel(game);
+  this.initiative = new InitiativePanel(game);
+  this.status = new StatusPanel(game);
+  this.terrain = new TerrainPanel(game);
   this.uiHolder.append(this.board.dom)
-    .append(this.initiativePanel.dom)
-    .append(this.statusPanel.dom);
+    .append(this.initiative.dom)
+    .append(this.status.dom)
+    .append(this.terrain.dom);
+};
+
+UI.prototype.setCursor = function(cell){
+  if(this.cursor) this.cursor.dom.removeClass('cursor');
+  this.cursor = this.game.getCell(cell);
+  this.cursor.dom.addClass('cursor');
+
+  this.status.update(cell.unit);
+  this.terrain.update(cell);
 };
 
 

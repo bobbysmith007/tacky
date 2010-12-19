@@ -16,12 +16,26 @@ Unit.prototype = $.extend(new UIElement(), {
 Unit.prototype.init=function(game, opts){
   $.extend(this,{facing:DOWN,row:0,col:0},opts);
   UIElement.prototype.init.call(this);
-  console.log('creating new unit', this.name, this.__proto__.typeName);
   if(game)this.game = game;
   this.setFacing(this.facing);
   if(this.name) this.dom.attr('title', opts.name);
   if(this.team) this.dom.addClass(this.team);
-  console.log('Done: creating new unit', this.name);
+};
+
+Unit.prototype.buildHeading = function(){
+  var ctl= $('<h3></h3>')
+    .append($('<span class="name"></span>').html(this.name));
+  if(this.team)
+    ctl.append($('<span class="team"></span>')
+	       .html(this.team))
+    .addClass(this.team);
+  return ctl;
+};
+Unit.prototype.buildStats = function(){
+  var ctl = $('<div class="unit"></div>')
+    .append(this.buildHeading())
+    .append($('<div class="movement">Movement:'+this.moveRate+'</div>'));
+  return ctl;
 };
 
 Unit.prototype.setFacing = function (f){
@@ -49,7 +63,7 @@ Unit.prototype.isAlly = function(other){
   return (this.team && other.team && this.team == other.team);
 };
 
-Unit.prototype.siteRadius = function(){
+Unit.prototype.sightRadius = function(){
   var locs = new IndexSet(), i,j,
     maxR = this.game.UI.board.nRows-1,
     maxC = this.game.UI.board.nCols-1,
@@ -57,12 +71,15 @@ Unit.prototype.siteRadius = function(){
     me = this;
 
   function rec(idx, move){
-    var newMove=move-1;
     var cell = this.game.getCell(idx);
-    if(!cell.treadable) return; // cell is impassible
-    locs.add(idx);
+    var moveRate = cell.moveRate();
+    var newMove=move-(1/moveRate);
 
-    if(move==0) return;
+    if(moveRate==0 || move<0) return;    // cell is impassible, or we couldnt get here
+    if(cell.unit && !cell.unit.isAlly(me)) return; //cant move through enemies
+
+    locs.add(idx);
+    if(newMove<0) return;
     if(idx.col>0) rec(new Index(idx.row,idx.col-1),newMove);
     if(idx.col<maxC) rec(new Index(idx.row,idx.col+1),newMove);
     if(idx.row>0) rec(new Index(idx.row-1,idx.col),newMove);
@@ -81,13 +98,15 @@ Unit.prototype.movementRadius = function(){
     me = this;
 
   function rec(idx, move){
-    var newMove=move-1;
     var cell = this.game.getCell(idx);
-    if(!cell.treadable) return; // cell is impassible
-    if(cell.unit && move==0) return; // occupied cant end there
+    var moveRate = cell.moveRate();
+    var newMove=move-(1/moveRate);
+
+    if(moveRate==0 || move<0) return;    // cell is impassible, or we couldnt get here
     if(cell.unit && !cell.unit.isAlly(me)) return; //cant move through enemies
-    if(!cell.unit) locs.add(idx);
-    if(move==0) return;
+
+    locs.add(idx);
+    if(newMove<0) return;
     if(idx.col>0) rec(new Index(idx.row,idx.col-1),newMove);
     if(idx.col<maxC) rec(new Index(idx.row,idx.col+1),newMove);
     if(idx.row>0) rec(new Index(idx.row-1,idx.col),newMove);
@@ -116,7 +135,7 @@ var FraidyCatUnit = function(game, opts){
 };
 FraidyCatUnit.prototype = $.extend({typeName:'FraidyCatUnit'}, new Unit());
 FraidyCatUnit.prototype.aiTurn = function(){
-  var i,idx,cell,me=this,idxs = this.siteRadius().indexes;
+  var i,idx,cell,me=this,idxs = this.sightRadius().indexes;
   var dist = function(i1,i2){
     return Math.pow((i2.col-i1.col),2) + Math.pow((i2.row-i1.row),2);
   };

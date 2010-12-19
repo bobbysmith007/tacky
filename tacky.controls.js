@@ -7,13 +7,14 @@ var ENTER = 13;
 var ESC = 27;
 
 window.CURRENT_CTLS = [];
-$(window).keypress( function(event){
+$(window).keydown( function(event){
   var stack = window.CURRENT_CTLS, ctls;
   if ((ctls=stack[stack.length-1])){
     //console.log('Handling keys', stack, ctls, event);
-    if(ctls.keyPressHandler)ctls.keyPressHandler(event);
+    if(ctls.keydownHandler)ctls.keydownHandler(event);
   }
 });
+
 
 var Controls = function(game){
   var controls = this;
@@ -26,6 +27,7 @@ var Controls = function(game){
 Controls.prototype = {selected:null,cursor:null};
 Controls.prototype.bind=function(){
   window.CURRENT_CTLS.push(this);
+
   if(!this._mouseOverHandler){
     this._mouseOverHandler = function(event){
       var stack = window.CURRENT_CTLS, ctls;
@@ -57,10 +59,8 @@ Controls.prototype.unbind=function(){
 };
 
 Controls.prototype.setCursor = function(loc){
-  if(this.cursor)
-    this.cursor.dom.removeClass('cursor');
   this.cursor = this.game.getCell(loc);
-  this.cursor.dom.addClass('cursor');
+  this.game.UI.setCursor(this.cursor);
 };
 
 Controls.prototype.findTargetCell = function(t){
@@ -108,7 +108,7 @@ var MoveControls = function(game){
 
 MoveControls.prototype = new Controls();
 
-MoveControls.prototype.keyPressHandler = function(event){
+MoveControls.prototype.keydownHandler = function(event){
   var cancel = true;
   var key = event.keyCode;
   this.maxRow = this.game.UI.board.nRows-1;
