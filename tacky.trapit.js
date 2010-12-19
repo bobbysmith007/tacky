@@ -1,5 +1,5 @@
 var TrapItGame = function (){
-  $.extend(this,{nRows:15,nCols:15});
+  $.extend(this,{nRows:15,nCols:45});
 
 };
 

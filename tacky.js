@@ -82,6 +82,8 @@ Game.prototype.turn = function(){
   if (this.failCondition()) return game.announceFailure();
   else if(this.victoryCondition()) return game.announceVictory();
 
+  this.UI.initiative.update();
+
   var unit = this.initiativeQueue[this.initiativeIdx];
   if(unit.controller == HUMAN){
     this.controls.setCursor(unit);

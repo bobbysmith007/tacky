@@ -45,11 +45,17 @@ var Row = function (){
   this.init();
   this.cells=[];
   var me = this;
-  this.addCell=function(c){me.cells.push(c); me.dom.append(c.dom);};
+  this.br=$('<div class="kill-float"></div>');
+  this.dom.append(this.br);
 };
+
 Row.prototype = $.extend(new UIElement(), {
   dom:$('<div class="row"></div>')
 });
+Row.prototype.addCell=function(c){
+  this.cells.push(c);
+  this.br.before(c.dom);
+};
 
 var Board = function(game){
   $.extend(this, {
@@ -63,11 +69,8 @@ Board.prototype = $.extend(new UIElement(), {
 });
 Board.prototype.init = function(){
   UIElement.prototype.init.call(this);
-  // console.log('board init');
-  var me = this;
-  this.addRow = function(r){
-    this.rows.push(r); this.dom.append(r.dom);
-  };
+};
+Board.prototype.buildBoard=function(){
   var i,j,row,cell;
   for(i=0; i< this.nRows ;i++){
     row = new Row();
@@ -77,6 +80,14 @@ Board.prototype.init = function(){
     this.addRow(row);
   }
 };
+Board.prototype.addRow=function (r){
+  this.rows.push(r);
+  this.dom.append(r.dom);
+  r.dom.width(r.cells.length*(r.cells[0].dom.width()+4));
+  console.log(r.cells.length,(r.cells[0].dom.width()+4));
+};
+
+
 Board.prototype.getCell = function(o){
   return this.rows[o.row].cells[o.col];
 };
@@ -142,6 +153,25 @@ InitiativePanel.prototype = $.extend(new UIElement(), {
   dom:$('<div class="initiative"></div>')
 });
 
+InitiativePanel.prototype.update = function(){
+  this.dom.empty();
+  var i = this.game.initiativeIdx;
+  var cnt = 3, unit;
+  var ctl;
+  while (cnt-- >0){
+    while((unit = this.game.initiativeQueue[i])){
+      i++;
+      this.dom.append(unit.buildHeading());
+    }
+    i=0;
+    while(i<this.game.initiativeIdx
+	  && (unit = this.game.initiativeQueue[i])){
+      i++;
+      this.dom.append(unit.buildHeading());
+    }
+  }
+};
+
 var UI = function(game, uiHolder){
   this.init(game, uiHolder);
 };
@@ -156,12 +186,42 @@ UI.prototype.init = function(game, uiHolder){
     .append(this.initiative.dom)
     .append(this.status.dom)
     .append(this.terrain.dom);
+
+  this.board.buildBoard();
+};
+
+UI.prototype.scrollCursorIntoView = function(){
+  var c= this.cursor, b=this.board.dom,
+    rowHeight = c.dom.parent().height(),
+    cellWidth = c.dom.width();
+
+  var neededScrollTop = (c.row) * rowHeight;
+  var neededScrollBottom = neededScrollTop+rowHeight;
+  var currentScrollTop = b.scrollTop();
+  var currentScrollBottom = b.height() + currentScrollTop;
+
+  var neededScrollLeft = this.cursor.col * cellWidth;
+  var neededScrollRight = neededScrollLeft + cellWidth;
+  var currentScrollRight =
+    this.board.dom.width() + this.board.dom.scrollLeft();
+  var currentScrollLeft = this.board.dom.scrollLeft();
+
+  if(neededScrollTop<currentScrollTop ||
+     neededScrollBottom>currentScrollBottom ||
+     neededScrollLeft>currentScrollLeft ||
+     neededScrollRight<currentScrollRight)
+    this.cursor.dom[0].scrollIntoView();
+
 };
 
 UI.prototype.setCursor = function(cell){
   if(this.cursor) this.cursor.dom.removeClass('cursor');
   this.cursor = this.game.getCell(cell);
   this.cursor.dom.addClass('cursor');
+  this.scrollCursorIntoView();
+  // need To find a way to trigger only when the
+  // cursor is not in view
+
 
   this.status.update(cell.unit);
   this.terrain.update(cell);
