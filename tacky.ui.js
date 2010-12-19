@@ -200,16 +200,26 @@ UI.prototype.scrollCursorIntoView = function(){
   var currentScrollTop = b.scrollTop();
   var currentScrollBottom = b.height() + currentScrollTop;
 
-  var neededScrollLeft = this.cursor.col * cellWidth;
-  var neededScrollRight = neededScrollLeft + cellWidth;
+  var neededScrollLeft = this.cursor.col * (cellWidth+4);
+  var neededScrollRight = neededScrollLeft + (cellWidth+4);
   var currentScrollRight =
     this.board.dom.width() + this.board.dom.scrollLeft();
   var currentScrollLeft = this.board.dom.scrollLeft();
 
-  if(neededScrollTop<currentScrollTop ||
-     neededScrollBottom>currentScrollBottom ||
-     neededScrollLeft>currentScrollLeft ||
-     neededScrollRight<currentScrollRight)
+  console.log(neededScrollTop, currentScrollTop,
+    neededScrollTop<currentScrollTop,
+    neededScrollBottom, currentScrollBottom,
+    neededScrollBottom>currentScrollBottom,
+    neededScrollLeft, currentScrollLeft,
+    neededScrollLeft<currentScrollLeft,
+    neededScrollRight, currentScrollRight,
+    neededScrollRight>currentScrollRight);
+
+  if(neededScrollTop<currentScrollTop
+     || neededScrollBottom>currentScrollBottom
+     || neededScrollLeft<currentScrollLeft
+     || neededScrollRight>currentScrollRight
+    )
     this.cursor.dom[0].scrollIntoView();
 
 };
