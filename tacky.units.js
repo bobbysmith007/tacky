@@ -76,8 +76,6 @@ Unit.prototype.sightRadius = function(){
     var newMove=move-(1/moveRate);
 
     if(moveRate==0 || move<0) return;    // cell is impassible, or we couldnt get here
-    if(cell.unit && !cell.unit.isAlly(me)) return; //cant move through enemies
-
     locs.add(idx);
     if(newMove<0) return;
     if(idx.col>0) rec(new Index(idx.row,idx.col-1),newMove);

@@ -37,6 +37,15 @@ TrapItGame.prototype.generateTerrain = function(){
   this.UI.board.doCells(
     function(c){ c.setType('rock'); },
     idxs);
+
+var idxs = new IndexSet();
+  for(var i=0; i<15; i++){
+    idxs.add(new Index(1,i));
+    idxs.add(new Index(i,1));
+  }
+  this.UI.board.doCells(
+    function(c){ c.setType('road'); },
+    idxs);
 };
 
 TrapItGame.prototype.victoryCondition = function(){

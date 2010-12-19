@@ -2,7 +2,7 @@
        padding:1px; position:relative;}
 .cell.grass {background-color:#9CA}
 .cell.woods {background-color:#3A4}
-.cell.road {background-color:#660}
+.cell.road {background-color:#AAA}
 .cell.water {background-color:#66C}
 .cell.rock {background-color:#885;}
 
