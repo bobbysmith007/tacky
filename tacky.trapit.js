@@ -1,5 +1,5 @@
 var TrapItGame = function (){
-  $.extend(this,{nRows:15,nCols:45});
+  $.extend(this,{nRows:15,nCols:20});
 
 };
 
@@ -55,7 +55,11 @@ TrapItGame.prototype.generateTerrain = function(){
     function(c){ c.setType('woods'); },
     idxs);
 
-
+};
+TrapItGame.prototype.generateTerrain = function(){
+  var i, tg = new TerrainGenerator(this.UI.board);
+  for(i=0;i<randomInRange(8)+1;i++)tg.randomLineTerrain();
+  for(i=0;i<randomInRange(3)+1;i++) tg.randomRectangeTerrain();
 };
 
 TrapItGame.prototype.victoryCondition = function(){

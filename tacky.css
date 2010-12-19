@@ -2,6 +2,7 @@
 .cell {height:30px; width:30px; float:left; border:1px solid #999;
        padding:1px; position:relative;}
 .cell.grass {background-color:#9CA}
+.cell.swamp {background-color:#226;}
 .cell.woods {background-color:#3A4}
 .cell.road {background-color:#AAA}
 .cell.water {background-color:#66C}

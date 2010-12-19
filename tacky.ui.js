@@ -91,8 +91,9 @@ Board.prototype.getCell = function(o){
   return this.rows[o.row].cells[o.col];
 };
 Board.prototype.doCells = function (fn, locations){
-  var i,loc;
-  for( i=0; loc = locations.indexes[i]; i++){
+  var i,loc, them=locations;
+  if(locations.indexes) them=locations.indexes;
+  for( i=0; loc = them[i]; i++){
     var cell = this.getCell(loc);
     fn(cell);
   }

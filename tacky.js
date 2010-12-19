@@ -67,8 +67,8 @@ Game.prototype.addUnit = function(u){
 
 Game.prototype.findRandomEmptyLocation = function(){
   var cell;
-  do cell = this.getCell({row:randomInRange(this.UI.board.nRows),
-			 cell:randomInRange(this.UI.board.nCols)});
+  do cell = this.getCell({row:randomInRange(this.UI.board.nRows-1),
+			  col:randomInRange(this.UI.board.nCols-1)});
   while(cell.unit);
   return cell;
 };
