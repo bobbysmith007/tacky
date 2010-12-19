@@ -34,16 +34,18 @@ Controls.prototype.bind=function(){
 	if(ctls.mouseOverHandler) ctls.mouseOverHandler(event);
       }
     };
-    $('.cell', this.game.board.dom).mouseover(this._mouseOverHandler);
+    $('.cell', this.game.UI.board.dom).mouseover(this._mouseOverHandler);
   };
   if(!this._clickHandler){
     this._clickHandler = function(event){
       var stack = window.CURRENT_CTLS, ctls;
       if ((ctls=stack[stack.length-1])){
-	if(ctls.clickHandler) ctls.clickHandler(event);
+	if(ctls.clickHandler) return ctls.clickHandler(event);
       }
+      return true;
     };
-    $('.cell', this.game.board.dom).click( this._clickHandler );
+    $(window).click( this._clickHandler );
+    // $('.cell', this.this.game.UI.board.dom).click( this._clickHandler );
   }
 };
 
@@ -61,15 +63,28 @@ Controls.prototype.setCursor = function(loc){
   this.cursor.dom.addClass('cursor');
 };
 
+Controls.prototype.findTargetCell = function(t){
+  if(t.cell)return t;
+  if(t.parentNode) return this.findTargetCell(t.parentNode);
+  return null;
+};
+
 Controls.prototype.clickHandler = function(event){
-  console.log('Handling Click', event.target.cell);
-  if(event.target.cell)
-     this.setCursor(event.target.cell);
-  this.confirm();
+  var targetcell = this.findTargetCell(event.target);
+  console.log('Handling Click', event, event.which, targetcell);
+  if(targetcell){
+    this.setCursor(targetcell.cell);
+    if(event.which==1) this.confirm();
+    else if(event.which==3) this.cancel();
+    event.stopPropagation();
+    return false;
+  }
+  return true;
 };
 Controls.prototype.mouseOverHandler = function(event){
   // console.log(event, event.target, event.target.cell);
-  if(event.target.cell) this.setCursor(event.target.cell);
+  var target = this.findTargetCell(event.target);
+  if(target) this.setCursor(target.cell);
 };
 
 Controls.prototype.moveCursor = function(dir){
@@ -96,8 +111,8 @@ MoveControls.prototype = new Controls();
 MoveControls.prototype.keyPressHandler = function(event){
   var cancel = true;
   var key = event.keyCode;
-  this.maxRow = this.game.board.nRows-1;
-  this.maxCol = this.game.board.nCols-1;
+  this.maxRow = this.game.UI.board.nRows-1;
+  this.maxCol = this.game.UI.board.nCols-1;
 
   if(key == 0) key = event.charCode;
   if(key == UP ||
@@ -117,17 +132,17 @@ MoveControls.prototype.keyPressHandler = function(event){
 };
 
 MoveControls.prototype.cancel=function(){
-  this.game.board.unhighlight('move');
+  this.game.UI.board.unhighlight('move');
   this.setSelected(null);
 };
 
 MoveControls.prototype.confirm = function(){
   var idx = new Index(this.cursor.row,this.cursor.col);
-  console.log(this.selected.unit, this.moveRadius.inSet(idx), this.moveRadius);
+  // console.log(this.selected.unit, this.moveRadius.inSet(idx), this.moveRadius);
   if(this.selected.unit && this.moveRadius.inSet(idx)){
     this.selected.unit.move(idx);
     this.setSelected(null);
-    this.game.board.unhighlight('move');
+    this.game.UI.board.unhighlight('move');
     this.moveComplete();
   }
 };
@@ -147,7 +162,7 @@ MoveControls.prototype.setSelected = function(loc){
       this.selected = cell;
       this.selected.dom.addClass('selected');
       this.moveRadius = cell.unit.movementRadius();
-      this.game.board.highlight('move', this.moveRadius );
+      this.game.UI.board.highlight('move', this.moveRadius );
     }
   }
 };

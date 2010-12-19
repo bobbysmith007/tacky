@@ -1,8 +1,15 @@
-var TrapItGame = function (opts){
-  opts=opts || {rows:15,cols:15};
-  this.init(opts);
+var TrapItGame = function (){
+  $.extend(this,{nRows:15,nCols:15});
+
+};
+
+TrapItGame.prototype = new Game();
+TrapItGame.prototype.init = function(){
+  Game.prototype.init.call(this);
+  console.log('trapit game init');
   this.controls = new ForcedMoveControls(this);
   this.controls.bind();
+  console.log('adding units');
   this.addUnit(new PoliceUnit(this,{row:0, col:0, name:'Beggs'}));
   this.addUnit(new PoliceUnit(this,{row:0, col:14, name:'Widge'}));
   this.addUnit(new PoliceUnit(this,{row:14, col:0, name:'Londa'}));
@@ -16,8 +23,6 @@ var TrapItGame = function (opts){
   this.scheduleNextTurn();
 };
 
-TrapItGame.prototype = new Game();
-
 TrapItGame.prototype.generateTerrain = function(){
   var idxs = new IndexSet();
   for(var i=3; i<=12; i++){
@@ -29,7 +34,7 @@ TrapItGame.prototype.generateTerrain = function(){
   idxs.add(new Index(7,5));
   idxs.add(new Index(8,5));
   idxs.add(new Index(9,5));
-  this.board.doCells(function(c){
+  this.UI.board.doCells(function(c){
     c.dom.removeClass('grass');
     c.treadable=false;
     c.dom.addClass('rock');
@@ -37,7 +42,7 @@ TrapItGame.prototype.generateTerrain = function(){
 };
 
 TrapItGame.prototype.victoryCondition = function(){
-  console.log('Victory?', this.IT.movementRadius().indexes.length==1);
+  // console.log('Victory?', this.IT.movementRadius().indexes.length==1);
   return this.IT.movementRadius().indexes.length == 1;
 };
 

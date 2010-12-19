@@ -1,22 +1,27 @@
+var HUMAN='HUMAN', CPU='CPU';
 
 var Unit = function(game, opts){
-  this.init(game, opts);
+  this.typeName='Unit';
+  if(game) this.init(game, opts);
 };
-var HUMAN='HUMAN', CPU='CPU';
-Unit.prototype = {
+
+Unit.prototype = $.extend(new UIElement(), {
   dom: $('<div class="unit"></div>'),
   initiative: 10,
   moveRate: 4,
   facing: UP,
   controller: HUMAN
-};
+});
+
 Unit.prototype.init=function(game, opts){
   $.extend(this,{facing:DOWN,row:0,col:0},opts);
+  UIElement.prototype.init.call(this);
+  console.log('creating new unit', this.name, this.__proto__.typeName);
   if(game)this.game = game;
-  this.dom = this.dom.clone();
   this.setFacing(this.facing);
   if(this.name) this.dom.attr('title', opts.name);
   if(this.team) this.dom.addClass(this.team);
+  console.log('Done: creating new unit', this.name);
 };
 
 Unit.prototype.setFacing = function (f){
@@ -46,8 +51,8 @@ Unit.prototype.isAlly = function(other){
 
 Unit.prototype.siteRadius = function(){
   var locs = new IndexSet(), i,j,
-    maxR = this.game.board.nRows-1,
-    maxC = this.game.board.nCols-1,
+    maxR = this.game.UI.board.nRows-1,
+    maxC = this.game.UI.board.nCols-1,
     thisidx = new Index(this.row, this.col),
     me = this;
 
@@ -70,8 +75,8 @@ Unit.prototype.siteRadius = function(){
 
 Unit.prototype.movementRadius = function(){
   var locs = new IndexSet(), i,j,
-    maxR = this.game.board.nRows-1,
-    maxC = this.game.board.nCols-1,
+    maxR = this.game.UI.board.nRows-1,
+    maxC = this.game.UI.board.nCols-1,
     thisidx = new Index(this.row, this.col),
     me = this;
 
@@ -81,7 +86,6 @@ Unit.prototype.movementRadius = function(){
     if(!cell.treadable) return; // cell is impassible
     if(cell.unit && move==0) return; // occupied cant end there
     if(cell.unit && !cell.unit.isAlly(me)) return; //cant move through enemies
-
     if(!cell.unit) locs.add(idx);
     if(move==0) return;
     if(idx.col>0) rec(new Index(idx.row,idx.col-1),newMove);
@@ -98,17 +102,19 @@ Unit.prototype.aiTurn = function(){ console.log('No AI'); };
 
 
 var PoliceUnit = function(game, opts){
+  this.typeName='PoliceUnit';
   opts = $.extend({moveRate:5, team:'blueteam'}, opts);
-  this.init(game, opts);
+  if(game)this.init(game, opts);
 };
-PoliceUnit.prototype = new Unit();
+PoliceUnit.prototype = $.extend(new Unit());
 
 
 var FraidyCatUnit = function(game, opts){
+  this.typeName='FraidyCatUnit';
   opts = $.extend({moveRate:5, team:'blueteam'}, opts);
-  this.init(game, opts);
+  if(game)this.init(game, opts);
 };
-FraidyCatUnit.prototype = new Unit();
+FraidyCatUnit.prototype = $.extend({typeName:'FraidyCatUnit'}, new Unit());
 FraidyCatUnit.prototype.aiTurn = function(){
   var i,idx,cell,me=this,idxs = this.siteRadius().indexes;
   var dist = function(i1,i2){

@@ -4,6 +4,7 @@
     <link href="tacky.css" rel="stylesheet" type="text/css">
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js" ></script>
     <script type="text/javascript" src="tacky.js" ></script>
+    <script type="text/javascript" src="tacky.ui.js" ></script>
     <script type="text/javascript" src="tacky.units.js" ></script>
     <script type="text/javascript" src="tacky.controls.js" ></script>
     <script type="text/javascript" src="tacky.trapit.js" ></script>
@@ -12,7 +13,8 @@
 
 <script type="text/javascript">
   $(window).ready(function(){ 
-    window.game = new TrapItGame(); 
+    window.game = new TrapItGame();
+    window.game.init();
   });
 </script>
   </body>
