@@ -79,7 +79,7 @@ Controls.prototype.findTargetCell = function(t){
 
 Controls.prototype.clickHandler = function(event){
   var targetcell = this.findTargetCell(event.target);
-  console.log('Handling Click', event, event.which, targetcell);
+  //console.log('Handling Click', event, event.which, targetcell);
   if(targetcell){
     this.setCursor(targetcell.cell);
     if(event.which==1) this.confirm();
@@ -147,7 +147,10 @@ MoveControls.prototype.cancel=function(){
 MoveControls.prototype.confirm = function(){
   var idx = new Index(this.cursor.row,this.cursor.col);
   // console.log(this.selected.unit, this.moveRadius.inSet(idx), this.moveRadius);
-  if(this.selected.unit && this.moveRadius.inSet(idx)){
+  if(!this.selected){
+    this.selected = this.cursor;
+  }
+  if(this.selected && this.selected.unit && this.moveRadius.inSet(idx)){
     this.selected.unit.move(idx);
     this.setSelected(null);
     this.game.UI.board.unhighlight('move');

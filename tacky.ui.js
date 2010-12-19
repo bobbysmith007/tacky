@@ -136,8 +136,10 @@ TerrainPanel.prototype.update = function(o){
   var c = this.game.UI.cursor;
   this.dom.empty();
   if(c)
-    this.dom.append(
-      $('<span class="name"></span>')
+    this.dom
+      .append($('<span class="coords"></span>')
+	.addClass(c.type).html('<'+c.row+','+c.col+'>'))
+      .append($('<span class="name"></span>')
 	.addClass(c.type).html(c.type))
       .append($('<span class="moveRate"></span>')
 	.html('Move: '+c.moveRate()));
@@ -220,7 +222,6 @@ UI.prototype.setCursor = function(cell){
   this.scrollCursorIntoView();
   // need To find a way to trigger only when the
   // cursor is not in view
-
 
   this.status.update(cell.unit);
   this.terrain.update(cell);
