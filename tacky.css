@@ -1,3 +1,4 @@
+body { padding:4px; }
 .board {position:relative;}
 .cell {height:30px; width:30px; float:left; border:1px solid #999;
        padding:1px; position:relative;}
@@ -32,18 +33,18 @@
 .board .unit.fright {border-right-width:6px; width:16px  }
 
 h4.frame-title {font-size:10pt; font-weight:bold; position:absolute;
- text-style:italic; padding:0px; margin:2px; right:2px; top:2px; }
+ font-style:italic; padding:0px; margin:2px; right:2px; top:2px; }
 
 .board {position:absolute; top:0; bottom:0; left:0; 
 	right:25%; overflow:auto;}
 .sidebar {position:absolute; top:0; bottom:0; left:75%; width:25%;
-	  border:2px solid #663;}
+	  border-left:2px solid #663; margin-left:-2px; }
 .sidebar span{ padding:0 2px; }
 .side-frame {height:25%; border-bottom:2px solid #663; position:relative;
   width:100%; overflow:hidden;}
 .side-frame .content{
     bottom: 0px; overflow: auto; position: absolute; top: 20px; width: 100%;}
-.side-frame:last-child{height:24%;}
+.side-frame:last-child{height:24%;border-bottom:none;}
 
 .status h3 span { padding:0 3px;}
 .initiative h3 span { padding:0 3px;}
