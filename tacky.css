@@ -15,7 +15,8 @@
 .cell.cursor.blink{padding:0px; border:2px dashed #66F;}
 .cell.move.highlight.selected.cursor,
 .cell.cursor.selected {padding:0px; border:2px dashed #6A6;}
-.cell.cursor.blink.selected{padding:0px; border:2px dashed #9D9;}
+.cell.cursor.blink.selected,
+.cell.cursor.blink.highlight.selected{padding:0px; border:2px dashed #FFF;}
 
 .row { position:relative;}
 .kill-float{clear:both;height:0;line-height:0;}
@@ -39,8 +40,9 @@ h4.frame-title {font-size:10pt; font-weight:bold; position:absolute;
 	  border:2px solid #663;}
 .sidebar span{ padding:0 2px; }
 .side-frame {height:25%; border-bottom:2px solid #663; position:relative;
-  width:100%; overflow:auto;}
-.side-frame .content{ overflow:auto; position:relative;}
+  width:100%; overflow:hidden;}
+.side-frame .content{
+    bottom: 0px; overflow: auto; position: absolute; top: 20px; width: 100%;}
 .side-frame:last-child{height:24%;}
 
 .status h3 span { padding:0 3px;}

@@ -132,8 +132,10 @@ SideBarFrame.prototype = $.extend(new UIElement(), {
 });
 SideBarFrame.prototype.init=function(game){
   UIElement.prototype.init.call(this, game);
-  //this.__class = this.name.toLowerCase().replace(" ","-");
-  //this.dom.addClass(this.__class);
+  if(this.name){
+    this.__class = this.name.toLowerCase().replace(" ","-");
+    this.dom.addClass(this.__class);
+  }
   this.titleDom = $('.frame-title',this.dom);
   this.titleDom.html(this.name);
   this.contentDom = $('.content',this.dom);
@@ -192,13 +194,13 @@ InitiativePanel.prototype.update = function(){
   while (cnt-- >0){
     while((unit = this.game.initiativeQueue[i])){
       i++;
-      this.dom.append(unit.buildHeading());
+      this.contentDom.append(unit.buildHeading());
     }
     i=0;
     while(i<this.game.initiativeIdx
 	  && (unit = this.game.initiativeQueue[i])){
       i++;
-      this.dom.append(unit.buildHeading());
+      this.contentDom.append(unit.buildHeading());
     }
   }
 };
@@ -260,7 +262,7 @@ UI.prototype.scrollCursorIntoView = function(){
 };
 
 UI.prototype.setCursor = function(cell){
-  if(this.cursor) this.cursor.dom.removeClass('cursor');
+  if(this.cursor){ this.cursor.dom.removeClass('blink cursor');}
   this.cursor = this.game.getCell(cell);
   this.cursor.dom.addClass('cursor');
   this.scrollCursorIntoView();
