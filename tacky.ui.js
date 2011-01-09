@@ -16,7 +16,7 @@ UIElement.prototype = { typeName:'UIElement' };
 
 UIElement.prototype.init = function (){
   // console.log('UIElement init');
-  if(this.dom) this.dom = this.dom.clone();
+  if(this.dom) this.dom = this.dom.clone(true);
 };
 
 var Cell = function(row, col, type, elevation){
@@ -112,32 +112,64 @@ Board.prototype.unhighlight = function (name){
   delete(this.highlights[name]);
 };
 
+var SideBar = function(game){
+  this.game=game;
+  if(game) this.init(game);
+};
+SideBar.prototype = $.extend(new UIElement(), {
+  dom:$('<div class="sidebar"></div>')
+});
+
+var SideBarFrame = function(game, name){
+  this.game = game;
+  this.name = name;
+  if(game) this.init(game);
+};
+SideBarFrame.prototype = $.extend(new UIElement(), {
+  dom:$('<div class="side-frame">'
+	+ '<h4 class="frame-title"></h4>'
+	+ '<div class="content"></div></div>')
+});
+SideBarFrame.prototype.init=function(game){
+  UIElement.prototype.init.call(this, game);
+  //this.__class = this.name.toLowerCase().replace(" ","-");
+  //this.dom.addClass(this.__class);
+  this.titleDom = $('.frame-title',this.dom);
+  this.titleDom.html(this.name);
+  this.contentDom = $('.content',this.dom);
+};
 var StatusPanel = function(game){
   this.game=game;
   if(game) this.init(game);
 };
-StatusPanel.prototype = $.extend(new UIElement(), {
-  dom:$('<div class="status"></div>')
-});
+StatusPanel.prototype = new SideBarFrame(null, "Status");
 
 StatusPanel.prototype.update = function(o){
-  this.dom.empty();
-  if(o && o.buildStats) this.dom.append(o.buildStats());
+  this.contentDom.empty();
+  if(o && o.buildStats) this.contentDom.append(o.buildStats());
+};
+
+var SelectedStatusPanel = function(game){
+  this.game=game;
+  if(game) this.init(game);
+};
+SelectedStatusPanel.prototype = new SideBarFrame(null, "Selected Unit");
+SelectedStatusPanel.prototype.update = function(o){
+  this.contentDom.empty();
+  if(o && o.buildStats) this.contentDom.append(o.buildStats());
 };
 
 var TerrainPanel = function(game){
   this.game=game;
   if(game) this.init(game);
 };
-TerrainPanel.prototype = $.extend(new UIElement(), {
-  dom:$('<div class="terrain"></div>')
-});
+TerrainPanel.prototype = new SideBarFrame(null, "Terrain");
 
 TerrainPanel.prototype.update = function(o){
   var c = this.game.UI.cursor;
-  this.dom.empty();
+  this.contentDom.empty();
   if(c)
-    this.dom
+    this.contentDom
       .append($('<span class="coords"></span>')
 	.addClass(c.type).html('<'+c.row+','+c.col+'>'))
       .append($('<span class="name"></span>')
@@ -151,12 +183,9 @@ var InitiativePanel = function(game){
   this.game=game;
   if(game) this.init(game);
 };
-InitiativePanel.prototype = $.extend(new UIElement(), {
-  dom:$('<div class="initiative"></div>')
-});
-
+InitiativePanel.prototype = new SideBarFrame(null, 'Initiative');
 InitiativePanel.prototype.update = function(){
-  this.dom.empty();
+  this.contentDom.empty();
   var i = this.game.initiativeIdx;
   var cnt = 3, unit;
   var ctl;
@@ -178,18 +207,32 @@ var UI = function(game, uiHolder){
   this.init(game, uiHolder);
 };
 UI.prototype = {};
+
 UI.prototype.init = function(game, uiHolder){
+  var ui = this;
+  this.cursorBlinker = window.setInterval(function(){ui.cursorBlinkHandler();},500);
   this.game = game, this.uiHolder = uiHolder;
   this.board = new Board(game);
+  this.sidebar = new SideBar(game);
   this.initiative = new InitiativePanel(game);
   this.status = new StatusPanel(game);
+  this.selectedStatus = new SelectedStatusPanel(game);
   this.terrain = new TerrainPanel(game);
   this.uiHolder.append(this.board.dom)
-    .append(this.initiative.dom)
+    .append(this.sidebar.dom);
+  this.sidebar.dom.append(this.initiative.dom)
+    .append(this.selectedStatus.dom)
     .append(this.status.dom)
     .append(this.terrain.dom);
 
   this.board.buildBoard();
+};
+
+UI.prototype.cursorBlinkHandler = function(){
+  if(this.cursor.dom.hasClass('blink'))
+    this.cursor.dom.removeClass('blink');
+  else
+    this.cursor.dom.addClass('blink');
 };
 
 UI.prototype.scrollCursorIntoView = function(){
@@ -223,7 +266,6 @@ UI.prototype.setCursor = function(cell){
   this.scrollCursorIntoView();
   // need To find a way to trigger only when the
   // cursor is not in view
-
   this.status.update(cell.unit);
   this.terrain.update(cell);
 };

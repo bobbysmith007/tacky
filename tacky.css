@@ -12,8 +12,10 @@
 
 .cell.move.highlight.selected{ padding:0px; border:2px dashed white;}
 .cell.cursor{padding:0px; border:2px dashed #33C;}
+.cell.cursor.blink{padding:0px; border:2px dashed #66F;}
 .cell.move.highlight.selected.cursor,
 .cell.cursor.selected {padding:0px; border:2px dashed #6A6;}
+.cell.cursor.blink.selected{padding:0px; border:2px dashed #9D9;}
 
 .row { position:relative;}
 .kill-float{clear:both;height:0;line-height:0;}
@@ -28,15 +30,18 @@
 .board .unit.fleft {border-left-width:6px; width:16px }
 .board .unit.fright {border-right-width:6px; width:16px  }
 
-.board, .initiative, .status, .terrain {border:2px solid #663; }
+h4.frame-title {font-size:10pt; font-weight:bold; position:absolute;
+ text-style:italic; padding:0px; margin:2px; right:2px; top:2px; }
+
 .board {position:absolute; top:0; bottom:0; left:0; 
 	right:25%; overflow:auto;}
-.initiative {position:absolute; top:0; bottom:50%; right:0; 
-	left:75%; overflow:auto;}
-.status {position:absolute; top:50%; bottom:25%; right:0; 
-	 left:75%; overflow:auto;}
-.terrain {position:absolute; top:75%; bottom:0%; right:0;
-	  left:75%; overflow:auto;}
+.sidebar {position:absolute; top:0; bottom:0; left:75%; width:25%;
+	  border:2px solid #663;}
+.sidebar span{ padding:0 2px; }
+.side-frame {height:25%; border-bottom:2px solid #663; position:relative;
+  width:100%; overflow:auto;}
+.side-frame .content{ overflow:auto; position:relative;}
+.side-frame:last-child{height:24%;}
 
 .status h3 span { padding:0 3px;}
 .initiative h3 span { padding:0 3px;}

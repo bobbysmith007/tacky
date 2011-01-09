@@ -166,6 +166,7 @@ MoveControls.prototype.setSelected = function(loc){
   if(this.selected){
     this.selected.dom.removeClass('selected');
     this.selected = null;
+    this.game.UI.selectedStatus.update(null);
   }
   if( loc ){
     var cell = this.game.getCell(loc);
@@ -174,6 +175,7 @@ MoveControls.prototype.setSelected = function(loc){
       this.selected.dom.addClass('selected');
       this.moveRadius = cell.unit.movementRadius();
       this.game.UI.board.highlight('move', this.moveRadius );
+      this.game.UI.selectedStatus.update(cell.unit);
     }
   }
 };
